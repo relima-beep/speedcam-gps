@@ -43,6 +43,7 @@ class MainActivity : ComponentActivity() {
     private var cameraMode = 0
     private var filterMode = 0
     private var dualActive = false
+    private val speedOverlay = SpeedOverlay()
     private val prefs by lazy { getSharedPreferences("speedcam_settings", MODE_PRIVATE) }
     private val locationListener = LocationListener { loc ->
         speed.text = "%.0f km/h".format(if (loc.hasSpeed()) loc.speed * 3.6 else 0.0)
