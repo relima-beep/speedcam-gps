@@ -222,8 +222,19 @@ private fun createSpeedEffect(): OverlayEffect {
                     val front = VideoCapture.withOutput(Recorder.Builder().build())
                     val backCase = Preview.Builder().build().also { it.surfaceProvider = backPreview.surfaceProvider }
                     val frontCase = Preview.Builder().build().also { it.surfaceProvider = frontPreview.surfaceProvider }
-                    val backGroup = UseCaseGroup.Builder().addUseCase(backCase).addUseCase(back).build()
-                    val frontGroup = UseCaseGroup.Builder().addUseCase(frontCase).addUseCase(front).build()
+                   
+val backGroup = UseCaseGroup.Builder()
+    .addUseCase(backCase)
+    .addUseCase(back)
+    .addEffect(createSpeedEffect())
+    .build()
+
+val frontGroup = UseCaseGroup.Builder()
+    .addUseCase(frontCase)
+    .addUseCase(front)
+    .addEffect(createSpeedEffect())
+    .build()
+
                     provider.bindToLifecycle(listOf(
                         ConcurrentCamera.SingleCameraConfig(CameraSelector.DEFAULT_BACK_CAMERA, backGroup, this),
                         ConcurrentCamera.SingleCameraConfig(CameraSelector.DEFAULT_FRONT_CAMERA, frontGroup, this)
