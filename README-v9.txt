@@ -1,0 +1,1 @@
+SpeedCam GPS v9 prototype. Replace three corresponding files in your existing GitHub repository. Concurrent camera availability and two simultaneous video recording streams depend on phone hardware. Build not verified. PiP is preview only; recordings are two separate files, not a composited PiP video. Audio is enabled for back video only. Filters preview only.
