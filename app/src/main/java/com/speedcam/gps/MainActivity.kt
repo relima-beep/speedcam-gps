@@ -1,3 +1,99 @@
+  package com.speedcam.gps
+
+import android.Manifest
+import android.content.ContentValues
+import android.content.pm.PackageManager
+import android.graphics.Color
+import android.graphics.Typeface
+import android.location.LocationListener
+import android.location.LocationManager
+import android.os.Bundle
+import android.provider.MediaStore
+import android.view.Gravity
+import android.view.View
+import android.widget.*
+import androidx.activity.ComponentActivity
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.video.MediaStoreOutputOptions
+import androidx.camera.video.Recorder
+import androidx.camera.video.Recording
+import androidx.camera.video.VideoCapture
+import androidx.camera.video.VideoRecordEvent
+import androidx.camera.view.PreviewView
+import androidx.core.content.ContextCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+
+class MainActivity : ComponentActivity() {
+    private lateinit var preview: PreviewView
+    private lateinit var speed: TextView
+    private lateinit var recordButton: Button
+    private var video: VideoCapture<Recorder>? = null
+    private var recording: Recording? = null
+    private var cameraMode = 0 // 0 back, 1 front, 2 both (fallback until dual recording is implemented)
+    private var filterMode = 0
+    private val prefs by lazy { getSharedPreferences("speedcam_settings", MODE_PRIVATE) }
+    private val locationListener = LocationListener { loc ->
+        speed.text = "%.0f km/h".format(if (loc.hasSpeed()) loc.speed * 3.6 else 0.0)
+    }
+    private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCameraAndGps()
+        else Toast.makeText(this, "Kamerabehörighet krävs", Toast.LENGTH_LONG).show()
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        cameraMode = prefs.getInt("camera_mode", 0)
+        filterMode = prefs.getInt("filter_mode", 0)
+
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setBackgroundColor(Color.BLACK)
+        }
+        val header = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(dp(12), dp(8), dp(12), dp(8))
+        }
+        speed = TextView(this).apply {
+            text = "-- km/h"
+            textSize = 27f
+            setTextColor(Color.WHITE)
+            setTypeface(null, Typeface.BOLD)
+        }
+        header.addView(speed, LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f))
+        header.addView(Button(this).apply {
+            text = "⚙"
+            contentDescription = "Inställningar"
+            setOnClickListener { showSettings() }
+        })
+        root.addView(header)
+
+        preview = PreviewView(this).apply {
+            implementationMode = PreviewView.ImplementationMode.COMPATIBLE
+            setBackgroundColor(Color.DKGRAY)
+        }
+        root.addView(preview, LinearLayout.LayoutParams(-1, 0, 1f))
+
+        val controls = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER
+            setPadding(dp(16), dp(12), dp(16), dp(16))
+        }
+        recordButton = Button(this).apply {
+            text = "● REC"
+            textSize = 19f
+            setOnClickListener { toggleRecording() }
+        }
+        controls.addView(recordButton, LinearLayout.LayoutParams(-1, dp(64)))
+        root.addView(controls)
+        setContentView(root)
+
+        ViewCompat.setOnApplyWindowInsetsListener(root) { view, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom)
             insets
         }
