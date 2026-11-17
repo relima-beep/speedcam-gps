@@ -48,6 +48,28 @@ class MainActivity : ComponentActivity() {
     private var filterMode = 0
     private var dualActive = false
     private val speedOverlay = SpeedOverlay()
+    
+private fun createSpeedEffect(): OverlayEffect {
+    val effect = OverlayEffect(
+        CameraEffect.VIDEO_CAPTURE,
+        0,
+        Handler(Looper.getMainLooper())
+    ) { error ->
+        android.util.Log.e(
+            "SpeedCam",
+            "Video overlay error",
+            error
+        )
+    }
+
+    effect.setOnDrawListener { frame ->
+        speedOverlay.draw(frame.overlayCanvas)
+        true
+    }
+
+    return effect
+}
+
     private val prefs by lazy { getSharedPreferences("speedcam_settings", MODE_PRIVATE) }
    private val locationListener = LocationListener { loc ->
     val kmh = if (loc.hasSpeed()) {
