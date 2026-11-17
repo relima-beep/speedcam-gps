@@ -45,9 +45,16 @@ class MainActivity : ComponentActivity() {
     private var dualActive = false
     private val speedOverlay = SpeedOverlay()
     private val prefs by lazy { getSharedPreferences("speedcam_settings", MODE_PRIVATE) }
-    private val locationListener = LocationListener { loc ->
-        speed.text = "%.0f km/h".format(if (loc.hasSpeed()) loc.speed * 3.6 else 0.0)
+   private val locationListener = LocationListener { loc ->
+    val kmh = if (loc.hasSpeed()) {
+        (loc.speed * 3.6f).toInt()
+    } else {
+        0
     }
+
+    speedOverlay.speedKmh = kmh
+    speed.text = "$kmh km/h"
+}
     private val permissions = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) startCameraAndGps()
         else Toast.makeText(this, "Kamerabehörighet krävs", Toast.LENGTH_LONG).show()
