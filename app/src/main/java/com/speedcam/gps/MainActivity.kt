@@ -62,10 +62,18 @@ private fun createSpeedEffect(): OverlayEffect {
         )
     }
 
-    effect.setOnDrawListener { frame ->
-        speedOverlay.draw(frame.overlayCanvas)
-        true
-    }
+  effect.setOnDrawListener { frame ->
+    val canvas = frame.overlayCanvas
+
+    canvas.drawColor(
+        android.graphics.Color.TRANSPARENT,
+        android.graphics.PorterDuff.Mode.CLEAR
+    )
+
+    speedOverlay.draw(canvas)
+
+    true
+}
 
     return effect
 }
