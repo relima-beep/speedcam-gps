@@ -260,7 +260,13 @@ val frontGroup = UseCaseGroup.Builder()
                         }
                     }
                     val previewCase = Preview.Builder().build().also { it.surfaceProvider = view.surfaceProvider }
-                    provider.bindToLifecycle(this, selected, previewCase, capture)
+                   val cameraGroup = UseCaseGroup.Builder()
+    .addUseCase(previewCase)
+    .addUseCase(capture)
+    .addEffect(createSpeedEffect())
+    .build()
+
+provider.bindToLifecycle(this, selected, cameraGroup)
                     if (cameraMode == 1) frontVideo = capture else backVideo = capture
                 }
             } catch (e: Exception) {
